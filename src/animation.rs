@@ -21,16 +21,16 @@ pub fn run() -> io::Result<()> {
 fn animate(output: &mut impl Write) -> io::Result<()> {
     let started_at = Instant::now();
     let mut next_frame_at = started_at;
-    let mut dimensions = crossterm::terminal::size()?;
-    let mut previous_frame = None;
+    let dimensions = crossterm::terminal::size()?;
+    let mut frame = Frame::new(dimensions.0, dimensions.1);
+    let mut presenter = terminal::Presenter::new();
 
     loop {
         let now = Instant::now();
 
         if now >= next_frame_at {
-            let frame = Frame::at_time(dimensions.0, dimensions.1, started_at.elapsed());
-            terminal::present(output, &frame, previous_frame.as_ref())?;
-            previous_frame = Some(frame);
+            frame.render_at(now.duration_since(started_at));
+            presenter.present(output, &frame)?;
 
             next_frame_at += FRAME_INTERVAL;
             if next_frame_at <= now {
@@ -43,8 +43,8 @@ fn animate(output: &mut impl Write) -> io::Result<()> {
             match event::read()? {
                 Event::Key(key) if is_quit_key(key) => return Ok(()),
                 Event::Resize(width, height) => {
-                    dimensions = (width, height);
-                    previous_frame = None;
+                    frame = Frame::new(width, height);
+                    presenter.invalidate();
                     next_frame_at = Instant::now();
                 }
                 _ => {}

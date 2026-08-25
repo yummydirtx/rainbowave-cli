@@ -6,7 +6,7 @@ use std::process::ExitCode;
 
 use clap::Parser;
 
-/// Fill the terminal with a flowing ASCII rainbow wave.
+/// Turn the terminal into a flowing field of spectral light.
 #[derive(Debug, Parser)]
 #[command(name = "rainbowave", version, about)]
 struct Cli {}

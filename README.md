@@ -1,8 +1,13 @@
 # Rainbowave CLI
 
-Rainbowave fills your terminal with layered ASCII waves and a constantly flowing
-truecolor rainbow. It is a small compiled utility designed to look especially
-smooth in modern, GPU-accelerated terminal emulators.
+Rainbowave turns your terminal into a full-screen field of spectral light. Five
+independently flowing ribbons braid through a deep, shifting haze with luminous
+cores, bloom, internal filaments, drifting motes, and a subtle star field.
+
+The scene runs at 60 frames per second and renders two independent truecolor
+pixels in every terminal cell using Unicode half blocks. Frames are built in a
+reused buffer, sent in one write, and wrapped in synchronized-update markers to
+keep supporting GPU-accelerated terminals smooth and tear-free.
 
 ## Install
 
@@ -36,12 +41,13 @@ flags. Run `rainbowave --help` or `rainbowave --version` for command metadata.
 
 ## Terminal support
 
-Rainbowave targets modern macOS and Linux terminals. It emits 24-bit ANSI color
-without rejecting terminals based on advertised capabilities, so terminals with
-limited color support may display an approximation. Because color is the program's
-primary output, `NO_COLOR` is intentionally ignored. If the terminal cannot enter
-raw or alternate-screen mode, Rainbowave exits with an error instead of leaving a
-partial animation behind.
+Rainbowave targets modern macOS and Linux terminals with UTF-8 and 24-bit ANSI
+color. It does not reject terminals based on advertised capabilities, so terminals
+with limited color support may display an approximation. Terminals that understand
+DEC synchronized output receive each frame atomically; other terminals safely
+ignore those markers. Because color is the program's primary output, `NO_COLOR` is
+intentionally ignored. If the terminal cannot enter raw or alternate-screen mode,
+Rainbowave exits with an error instead of leaving a partial animation behind.
 
 ## Development
 

@@ -3,9 +3,9 @@ name = "rainbowave"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.85"
-description = "A flowing rainbow wave for your terminal"
+description = "A luminous field of flowing rainbow ribbons for your terminal"
 repository = "https://github.com/yummydirtx/rainbowave-cli"
-keywords = ["ansi", "ascii", "cli", "rainbow", "terminal"]
+keywords = ["animation", "ansi", "cli", "rainbow", "terminal"]
 categories = ["command-line-utilities"]
 
 [dependencies]

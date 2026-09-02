@@ -7,12 +7,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef void (*RainbowaveSamplesCallback)(void *context, const float *samples, size_t sample_count);
+typedef void (*RainbowaveSamplesCallback)(void *context,
+                                          const float *samples,
+                                          size_t sample_count,
+                                          size_t channel_count);
 
 API_AVAILABLE(macos(14.0))
 @interface RainbowaveScreenAudioCapture : NSObject <SCContentSharingPickerObserver, SCStreamDelegate, SCStreamOutput> {
-    float *_monoSamples;
-    size_t _monoCapacity;
+    float *_interleavedSamples;
+    size_t _interleavedCapacity;
 }
 
 @property(nonatomic, assign) RainbowaveSamplesCallback callback;
@@ -43,7 +46,7 @@ static char *RainbowaveCopyString(NSString *message) {
 }
 
 - (void)dealloc {
-    free(_monoSamples);
+    free(_interleavedSamples);
 }
 
 - (BOOL)startWithError:(char **)errorOut {
@@ -190,42 +193,70 @@ static char *RainbowaveCopyString(NSString *message) {
         return;
     }
     size_t frameCount = (size_t)frameCountValue;
-    if (_monoCapacity < frameCount) {
-        float *resized = realloc(_monoSamples, frameCount * sizeof(float));
-        if (resized == NULL) {
+    size_t totalChannels = 0;
+    for (uint32_t bufferIndex = 0; bufferIndex < bufferList->mNumberBuffers; bufferIndex++) {
+        uint32_t bufferChannels = bufferList->mBuffers[bufferIndex].mNumberChannels;
+        if (bufferChannels > SIZE_MAX - totalChannels) {
             if (retainedBuffer != NULL) {
                 CFRelease(retainedBuffer);
             }
             return;
         }
-        _monoSamples = resized;
-        _monoCapacity = frameCount;
+        totalChannels += bufferChannels;
     }
-
-    uint32_t totalChannels = 0;
-    for (uint32_t bufferIndex = 0; bufferIndex < bufferList->mNumberBuffers; bufferIndex++) {
-        totalChannels += bufferList->mBuffers[bufferIndex].mNumberChannels;
-    }
-    if (totalChannels == 0) {
+    if (totalChannels == 0 || frameCount > SIZE_MAX / totalChannels) {
         if (retainedBuffer != NULL) {
             CFRelease(retainedBuffer);
         }
         return;
     }
 
-    for (size_t frame = 0; frame < frameCount; frame++) {
-        float sum = 0.0f;
-        for (uint32_t bufferIndex = 0; bufferIndex < bufferList->mNumberBuffers; bufferIndex++) {
-            AudioBuffer buffer = bufferList->mBuffers[bufferIndex];
-            const float *samples = (const float *)buffer.mData;
-            for (uint32_t channel = 0; channel < buffer.mNumberChannels; channel++) {
-                sum += samples[frame * buffer.mNumberChannels + channel];
-            }
+    size_t sampleCount = frameCount * totalChannels;
+    if (sampleCount > SIZE_MAX / sizeof(float)) {
+        if (retainedBuffer != NULL) {
+            CFRelease(retainedBuffer);
         }
-        _monoSamples[frame] = sum / (float)totalChannels;
+        return;
+    }
+    if (_interleavedCapacity < sampleCount) {
+        float *resized = realloc(_interleavedSamples, sampleCount * sizeof(float));
+        if (resized == NULL) {
+            if (retainedBuffer != NULL) {
+                CFRelease(retainedBuffer);
+            }
+            return;
+        }
+        _interleavedSamples = resized;
+        _interleavedCapacity = sampleCount;
     }
 
-    self.callback(self.callbackContext, _monoSamples, frameCount);
+    size_t channelOffset = 0;
+    for (uint32_t bufferIndex = 0; bufferIndex < bufferList->mNumberBuffers; bufferIndex++) {
+        AudioBuffer buffer = bufferList->mBuffers[bufferIndex];
+        size_t bufferChannels = buffer.mNumberChannels;
+        if (bufferChannels == 0) {
+            continue;
+        }
+        if (buffer.mData == NULL || frameCount > SIZE_MAX / bufferChannels ||
+            frameCount * bufferChannels > SIZE_MAX / sizeof(float) ||
+            buffer.mDataByteSize < frameCount * bufferChannels * sizeof(float)) {
+            if (retainedBuffer != NULL) {
+                CFRelease(retainedBuffer);
+            }
+            return;
+        }
+
+        const float *source = (const float *)buffer.mData;
+        for (size_t frame = 0; frame < frameCount; frame++) {
+            for (size_t channel = 0; channel < bufferChannels; channel++) {
+                _interleavedSamples[frame * totalChannels + channelOffset + channel] =
+                    source[frame * bufferChannels + channel];
+            }
+        }
+        channelOffset += bufferChannels;
+    }
+
+    self.callback(self.callbackContext, _interleavedSamples, sampleCount, totalChannels);
     if (retainedBuffer != NULL) {
         CFRelease(retainedBuffer);
     }

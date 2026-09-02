@@ -42,11 +42,14 @@ Make the ribbons react to music and any other sound playing through the system:
 rainbowave --audio
 ```
 
-Audio mode continuously analyzes eight frequency bands in memory. Bass bends and
-expands the ribbons, mids add motion, treble illuminates their fine structure,
-and detected beats send a soft pulse through the whole field. Audio is never
-stored or sent anywhere; samples are processed only in memory. Running without
-`--audio` does not access audio or request permission.
+Audio mode continuously analyzes 24 logarithmic frequency bands from 40 Hz to
+16 kHz. The live spectrum sculpts a mirrored aurora and a half-second cascade of
+ribbon echoes; low-frequency attacks launch expanding shockwaves, mid and high
+attacks shed flowing sparks, spectral brightness shifts the palette and height,
+and stereo balance and width shape the scene in space. Peak trails, selective
+bloom, and emissive afterglow give each musical event a visible lifetime. Audio
+is never stored or sent anywhere; samples are processed only in memory. Running
+without `--audio` does not access audio or request permission.
 
 On macOS 14 or newer, audio mode opens Apple's system content-sharing picker.
 Choose **Entire Screen** to visualize all system audio, or choose one or more

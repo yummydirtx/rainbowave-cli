@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key>
+    <string>com.yummydirtx.rainbowave</string>
+    <key>CFBundleName</key>
+    <string>Rainbowave</string>
+    <key>NSScreenCaptureUsageDescription</key>
+    <string>Rainbowave uses only the audio from the display or apps you choose to animate its visualization. Audio is processed locally and never stored.</string>
+</dict>
+</plist>

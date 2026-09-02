@@ -36,8 +36,28 @@ Press `q`, Escape, or Ctrl-C to quit. Rainbowave uses the terminal's alternate
 screen and restores the previous screen, cursor, colors, and input mode when it
 exits.
 
-The first release intentionally has one polished visual style and no tuning
-flags. Run `rainbowave --help` or `rainbowave --version` for command metadata.
+Make the ribbons react to music and any other sound playing through the system:
+
+```sh
+rainbowave --audio
+```
+
+Audio mode continuously analyzes eight frequency bands in memory. Bass bends and
+expands the ribbons, mids add motion, treble illuminates their fine structure,
+and detected beats send a soft pulse through the whole field. Audio is never
+stored or sent anywhere; samples are processed only in memory. Running without
+`--audio` does not access audio or request permission.
+
+On macOS 14 or newer, audio mode opens Apple's system content-sharing picker.
+Choose **Entire Screen** to visualize all system audio, or choose one or more
+applications to limit the visualization to their audio. Rainbowave requests an
+audio stream only; it does not retain or process video frames.
+
+On Linux, `parec` must be installed (usually from the `pulseaudio-utils` package).
+Rainbowave captures `@DEFAULT_MONITOR@`, which works with PulseAudio and with
+PipeWire's PulseAudio compatibility server.
+
+Run `rainbowave --help` or `rainbowave --version` for command metadata.
 
 ## Terminal support
 

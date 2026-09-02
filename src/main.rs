@@ -1,4 +1,5 @@
 mod animation;
+mod audio;
 mod render;
 mod terminal;
 
@@ -9,12 +10,16 @@ use clap::Parser;
 /// Turn the terminal into a flowing field of spectral light.
 #[derive(Debug, Parser)]
 #[command(name = "rainbowave", version, about)]
-struct Cli {}
+struct Cli {
+    /// React to music and other audio playing through the system output
+    #[arg(long)]
+    audio: bool,
+}
 
 fn main() -> ExitCode {
-    Cli::parse();
+    let cli = Cli::parse();
 
-    match animation::run() {
+    match animation::run(cli.audio) {
         Ok(()) => ExitCode::SUCCESS,
         Err(error) => {
             eprintln!("rainbowave: {error}");
@@ -36,7 +41,14 @@ mod tests {
 
     #[test]
     fn default_invocation_has_no_required_arguments() {
-        assert!(Cli::try_parse_from(["rainbowave"]).is_ok());
+        let cli = Cli::try_parse_from(["rainbowave"]).unwrap();
+        assert!(!cli.audio);
+    }
+
+    #[test]
+    fn audio_mode_is_optional() {
+        let cli = Cli::try_parse_from(["rainbowave", "--audio"]).unwrap();
+        assert!(cli.audio);
     }
 
     #[test]
